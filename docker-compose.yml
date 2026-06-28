@@ -34,6 +34,11 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./spark/jobs:/opt/spark/jobs
     mem_limit: 1g
 
   spark-worker:
