@@ -28,7 +28,8 @@ services:
         mc mb --ignore-existing local/bronze local/silver local/gold
 
   spark-master:
-    image: apache/spark:4.1.2-python3
+    build: ./spark
+    image: gharchive-spark:4.1.2
     restart: unless-stopped 
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
     ports:
@@ -42,7 +43,8 @@ services:
     mem_limit: 1g
 
   spark-worker:
-    image: apache/spark:4.1.2-python3
+    build: ./spark
+    image: gharchive-spark:4.1.2
     restart: unless-stopped 
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
