@@ -1,19 +1,9 @@
 import os
-from pyspark.sql import SparkSession, functions as F
+from pyspark.sql import functions as F
+from session import get_spark
 
 DATE = os.environ.get("INGEST_DATE", "2025-01-15")
-
-spark = (
-    SparkSession.builder
-    .appName("bronze-to-silver")
-    .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
-    .config("spark.hadoop.fs.s3a.access.key", os.environ["MINIO_ROOT_USER"])
-    .config("spark.hadoop.fs.s3a.secret.key", os.environ["MINIO_ROOT_PASSWORD"])
-    .config("spark.hadoop.fs.s3a.path.style.access", "true")
-    .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
-    .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
-    .getOrCreate()
-)
+spark = get_spark("bronze-to-silver")
 
 # Read all 24 hourly files for specified day
 raw = spark.read.json(f"s3a://bronze/{DATE}-*.json.gz")
