@@ -16,7 +16,7 @@ silver = raw.select(
     F.col("actor.login").alias("actor_login"),
     F.col("actor.id").alias("actor_id"),
     F.col("repo.name").alias("repo_name"),
-    F.col("actor.login").endswith("[bot]").alias("is_bot"),
+    F.coalesce(F.col("actor.login").endswith("[bot]"), F.lit(False)).alias("is_bot"),
     F.to_date("created_at").alias("date"),
 )
 
