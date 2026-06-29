@@ -1,19 +1,40 @@
 import os
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, functions as F
+
+DATE = os.environ.get("INGEST_DATE", "2025-01-15")
 
 spark = (
     SparkSession.builder
-    .appName("s3a-read-test")
+    .appName("bronze-to-silver")
     .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
     .config("spark.hadoop.fs.s3a.access.key", os.environ["MINIO_ROOT_USER"])
     .config("spark.hadoop.fs.s3a.secret.key", os.environ["MINIO_ROOT_PASSWORD"])
     .config("spark.hadoop.fs.s3a.path.style.access", "true")
     .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
+    .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
     .getOrCreate()
 )
 
-df = spark.read.json("s3a://bronze/2025-01-15-12.json.gz")
-print("ROW COUNT:", df.count())
-df.printSchema()
-df.show(3, truncate=True)
+# Read all 24 hourly files for specified day
+raw = spark.read.json(f"s3a://bronze/{DATE}-*.json.gz")
+
+# Flatten, clean, derive
+silver = raw.select(
+    F.col("id"),
+    F.to_timestamp("created_at").alias("created_at"),
+    F.col("type").alias("event_type"),
+    F.col("actor.login").alias("actor_login"),
+    F.col("actor.id").alias("actor_id"),
+    F.col("repo.name").alias("repo_name"),
+    F.col("actor.login").endswith("[bot]").alias("is_bot"),
+    F.to_date("created_at").alias("date"),
+)
+
+# Write to silver as date-partitioned Parquet
+(silver.write
+    .mode("overwrite")
+    .partitionBy("date")
+    .parquet("s3a://silver/"))
+
+print(f"silver written for {DATE}: {silver.count()} rows")
 spark.stop()
