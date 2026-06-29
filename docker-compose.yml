@@ -27,6 +27,19 @@ services:
         until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do echo "waiting for minio..."; sleep 1; done
         mc mb --ignore-existing local/bronze local/silver local/gold
 
+  downloader:
+    build: ./downloader
+    image: gharchive-downloader:1.0
+    profiles: ["jobs"]
+    restart: "no"
+    depends_on:
+      createbuckets:
+        condition: service_completed_successfully
+    environment:
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      
   spark-master:
     build: ./spark
     image: gharchive-spark:4.1.2
