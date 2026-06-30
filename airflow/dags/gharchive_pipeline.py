@@ -11,6 +11,7 @@ MINIO_ENV = {
     "MINIO_ENDPOINT": "http://minio:9000",
     "MINIO_ROOT_USER": os.environ["MINIO_ROOT_USER"],
     "MINIO_ROOT_PASSWORD": os.environ["MINIO_ROOT_PASSWORD"],
+    "INGEST_DATE": "{{ ds }}",
 }
 POSTGRES_ENV = {
     "POSTGRES_USER": os.environ["POSTGRES_USER"],
@@ -36,8 +37,8 @@ def spark_task(task_id, job):
 
 with DAG(
     dag_id="gharchive_pipeline",
-    start_date=datetime.datetime(2024, 1, 1),
-    schedule=None,
+    start_date=datetime.datetime(2025, 1, 15),
+    schedule="@daily",
     catchup=False,
     tags=["gharchive"],
 ) as dag:
