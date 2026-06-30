@@ -11,3 +11,5 @@ ADD https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-4
 RUN chmod 644 /opt/spark/jars/*.jar
 
 USER spark
+
+COPY jobs/ /opt/spark/jobs/
