@@ -31,3 +31,13 @@ INSERT INTO dim_event_type (event_type, category, label) VALUES
   ('MemberEvent',                   'human-social', 'Member Added'),
   ('GollumEvent',                   'human-social', 'Wiki Edit')
 ON CONFLICT (event_type) DO NOTHING;
+
+-- Read-only user for dashboard
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'dashboard_ro') THEN
+    CREATE ROLE dashboard_ro LOGIN PASSWORD 'dashboard_ro';
+  END IF;
+END $$;
+GRANT USAGE ON SCHEMA public TO dashboard_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO dashboard_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO dashboard_ro;

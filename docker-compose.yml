@@ -108,6 +108,19 @@ services:
       - postgres-data:/var/lib/postgresql
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
+  streamlit:
+    build: ./streamlit
+    image: gharchive-streamlit:1.0
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - DASHBOARD_USER=dashboard_ro
+      - DASHBOARD_PASSWORD=dashboard_ro
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - postgres
+
 # --- orchestration (control plane) ---  
   airflow-postgres:
     image: postgres:18.4
